@@ -31,6 +31,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Get tag
+        id: tag
+        run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+
       # Set up BuildKit Docker container builder to be able to build
       # multi-platform images and export cache
       # https://github.com/docker/setup-buildx-action
@@ -73,11 +77,11 @@ jobs:
         env:
           DSLIM_HTTP_PROBE: false
         with:
-          target: {{secrets.DOCKERHUB_USERNAME}}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tags }}
-          tag: "slim-{{ steps.meta.outputs.tags }}"
+          target: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
+          tag: "slim-{{ steps.tag.outputs.tags }}"
 
       # Push the slim image to the registry
       - name: Push the slim image to the registry
         run: | 
-         docker tag IMAGE_NAME:slim-{{steps.meta.outputs.tags}} ${{ secrets.DOCKERHUB_USERNAME }}/IMAGE_NAME:slim-{{steps.meta.outputs.tags}}
-         docker push ${{ secrets.DOCKERHUB_USERNAME }}/IMAGE_NAME:slim-{{steps.meta.outputs.tags}}
+         docker tag ${{ env.IMAGE_NAME }}:slim-{{steps.tag.outputs.tags}} ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:slim-{{steps.tag.outputs.tags}}
+         docker push ${{ secrets.DOCKERHUB_USERNAME }}/IMAGE_NAME:slim-{{steps.tag.outputs.tags}}
