@@ -37,14 +37,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
 
-      # Login against a Docker registry except on PR
-      # https://github.com/docker/login-action
-      - name: Log into registry
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
       - name: Extract Docker metadata
@@ -53,15 +45,37 @@ jobs:
         with:
           images: ${{ env.IMAGE_NAME }}
 
-      # Build and push Docker image with Buildx (don't push on PR)
+      # Build Docker image with Buildx
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
+          push: false
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # Slim the Docker image
+      # https://github.com/slimtoolkit/slim
+      - uses: kitabisa/docker-slim-action@v1
+        env:
+          DSLIM_HTTP_PROBE: false
+        with:
+          target: ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tags }}
+          tag: "slim-{{ steps.meta.outputs.tags }}"
+
+      # Login against a Docker registry
+      # https://github.com/docker/login-action
+      - name: Log into registry
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Push to the registry
+      - run: | 
+         docker tag IMAGE_NAME:slim-{{steps.meta.outputs.tags}} ${{ secrets.DOCKERHUB_USERNAME }}/IMAGE_NAME:slim-{{steps.meta.outputs.tags}}
+         docker push ${{ secrets.DOCKERHUB_USERNAME }}/IMAGE_NAME:slim-{{steps.meta.outputs.tags}}
