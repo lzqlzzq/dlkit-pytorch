@@ -77,7 +77,7 @@ jobs:
         env:
           DSLIM_HTTP_PROBE: false
         with:
-          target: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
+          target: "{{ secrets.DOCKERHUB_USERNAME }}/{{ env.IMAGE_NAME }}:{{ steps.tag.outputs.tag }}"
           tag: "slim-{{ steps.tag.outputs.tags }}"
 
       # Push the slim image to the registry
