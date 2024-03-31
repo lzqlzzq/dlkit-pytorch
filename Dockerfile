@@ -7,7 +7,7 @@ WORKDIR /workspace
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
 RUN apt-get update
-RUN apt-get install -y -–no-install-recommends vim git && \
+RUN apt-get install -y --no-install-recommends vim git && \
     rm -rf /var/lib/apt/lists/*
 
 RUN pip install jupyterlab tensorboard
