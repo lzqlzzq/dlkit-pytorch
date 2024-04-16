@@ -28,3 +28,7 @@ docker pull lzqlzzq/dlkit-pytorch:latest
 docker run -itd --gpus all -p 8888:8888 -p 6006:6006 --ipc host -v ~/workspace/dlkit1:/workspace --name dlkit1 lzqlzzq/dlkit-pytorch
 ```
 * There are security issues with argument `--ipc host` but that will allow better performance of pytorch.
+Then get your token of jupyter lab by:
+```
+docker logs dlkit1
+```
